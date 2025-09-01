@@ -159,23 +159,12 @@
                         </select>
                     </div>
                 </div>
-                <div class="flex-1 text-center sm:text-right space-y-2">
-                    <div class="text-sm">Pontos de Vida</div>
-                    <input type="number" id="hp" class="text-4xl text-center font-bold w-full sm:w-2/3 mx-auto">
-                </div>
             </div>
-
-            <!-- Tabs Section -->
-            <div class="flex justify-center space-x-4 mb-6">
-                <button class="tab-button active" onclick="showTab('ficha')">Ficha</button>
-                <button class="tab-button" onclick="showTab('inventory')">Inventário</button>
-                <button class="tab-button" onclick="showTab('spells')">Feitiços</button>
-            </div>
-
-            <!-- Ficha Tab -->
-            <div id="ficha-tab" class="tab-content active space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Attributes Section -->
+            
+            <!-- Main Content Area - Grid Layout -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Left Column - Attributes -->
+                <div class="space-y-6">
                     <div class="card p-6 space-y-4">
                         <h2 class="text-2xl font-bold text-center">Atributos</h2>
                         <div class="stats-box">
@@ -193,23 +182,87 @@
                             <div class="text-center"><span class="stat-modifier" id="cha-mod">0</span></div>
                         </div>
                     </div>
-
-                    <!-- Skills and Proficiencies -->
+                    
                     <div class="card p-6 space-y-4">
-                        <h2 class="text-2xl font-bold text-center">Habilidades e Perícias</h2>
+                        <h2 class="text-2xl font-bold text-center">Perícias e Proficiências</h2>
                         <textarea id="skills" rows="6" placeholder="Acrobacia, Persuasão, etc..." class="w-full"></textarea>
                     </div>
                 </div>
 
-                <!-- Bio & History Section -->
-                <div class="card p-6 space-y-4">
-                    <h2 class="text-2xl font-bold text-center">História do Personagem</h2>
-                    <textarea id="history" rows="10" placeholder="A história do seu personagem..."></textarea>
+                <!-- Middle Column - Combat Stats & Dice Roller -->
+                <div class="space-y-6">
+                    <div class="card p-6 space-y-4">
+                        <h2 class="text-2xl font-bold text-center">Características de Combate</h2>
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                                <div class="text-sm">CA</div>
+                                <div class="text-2xl font-bold" id="ac-val">10</div>
+                            </div>
+                            <div>
+                                <div class="text-sm">Iniciativa</div>
+                                <div class="text-2xl font-bold" id="initiative-val">+0</div>
+                            </div>
+                            <div>
+                                <div class="text-sm">Ouro (GP)</div>
+                                <input type="number" id="gold" class="text-2xl text-center font-bold w-full" value="0" readonly>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-sm">Pontos de Vida</div>
+                            <input type="number" id="hp" class="text-4xl text-center font-bold w-full">
+                        </div>
+                    </div>
+
+                    <div class="card p-6 space-y-4 text-center">
+                        <h2 class="text-2xl font-bold">Rolador de Dados</h2>
+                        <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                            <select id="dice-type" class="w-full sm:w-auto">
+                                <option value="4">d4</option>
+                                <option value="6">d6</option>
+                                <option value="8">d8</option>
+                                <option value="10">d10</option>
+                                <option value="12">d12</option>
+                                <option value="20">d20</option>
+                            </select>
+                            <div class="flex items-center space-x-2 w-full sm:w-auto">
+                                <input type="number" id="dice-quantity" value="1" min="1" class="w-20 text-center">
+                                <span class="text-lg">x</span>
+                                <button class="button-add" onclick="rollDice()">Rolar</button>
+                            </div>
+                        </div>
+                        <div id="dice-result" class="text-xl font-bold text-gray-700 w-full sm:w-auto mt-4">Resultado: -</div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Background & Archetype -->
+                <div class="space-y-6">
+                    <div class="card p-6 space-y-4">
+                        <h2 class="text-2xl font-bold text-center">Antecedentes</h2>
+                        <select id="background-select" class="w-full">
+                            <option value="">Selecione um Antecedente...</option>
+                        </select>
+                    </div>
+                    <div class="card p-6 space-y-4">
+                        <h2 class="text-2xl font-bold text-center">Arquétipo</h2>
+                        <select id="archetype-select" class="w-full">
+                            <option value="">Selecione um Arquétipo...</option>
+                        </select>
+                    </div>
+                    <div class="card p-6 space-y-4">
+                        <h2 class="text-2xl font-bold text-center">História do Personagem</h2>
+                        <textarea id="history" rows="10" placeholder="A história do seu personagem..."></textarea>
+                    </div>
                 </div>
             </div>
 
+            <!-- Tabs Section -->
+            <div class="flex justify-center space-x-4 mb-6">
+                <button class="tab-button active" onclick="showTab('inventory')">Inventário</button>
+                <button class="tab-button" onclick="showTab('spells')">Feitiços</button>
+            </div>
+
             <!-- Inventory Tab -->
-            <div id="inventory-tab" class="tab-content">
+            <div id="inventory-tab" class="tab-content active">
                 <div class="card p-6 space-y-4">
                     <h2 class="text-2xl font-bold text-center">Inventário</h2>
                     <div class="flex space-x-2">
@@ -250,7 +303,27 @@
                 const score = parseInt(document.getElementById(attr).value) || 0;
                 document.getElementById(`${attr}-mod`).textContent = getModifier(score);
             });
+            
+            // Atualiza CA e Iniciativa com base no modificador de Destreza
+            const dexModifier = getModifier(parseInt(document.getElementById('dex').value) || 0);
+            document.getElementById('ac-val').textContent = 10 + dexModifier;
+            document.getElementById('initiative-val').textContent = (dexModifier >= 0 ? '+' : '') + dexModifier;
+
             saveCharacterData();
+        }
+        
+        // Rola os dados
+        function rollDice() {
+            const quantity = parseInt(document.getElementById('dice-quantity').value) || 1;
+            const type = parseInt(document.getElementById('dice-type').value);
+            let total = 0;
+            let results = [];
+            for (let i = 0; i < quantity; i++) {
+                const roll = Math.floor(Math.random() * type) + 1;
+                total += roll;
+                results.push(roll);
+            }
+            document.getElementById('dice-result').textContent = `Resultado: ${total} (${results.join(', ')})`;
         }
 
         // Salva os dados do personagem no localStorage
@@ -260,6 +333,7 @@
                 race: document.getElementById('race-select').value,
                 class: document.getElementById('class-select').value,
                 hp: document.getElementById('hp').value,
+                gold: document.getElementById('gold').value,
                 attributes: {
                     str: parseInt(document.getElementById('str').value) || 0,
                     dex: parseInt(document.getElementById('dex').value) || 0,
@@ -269,7 +343,11 @@
                     cha: parseInt(document.getElementById('cha').value) || 0,
                 },
                 skills: document.getElementById('skills').value,
-                history: document.getElementById('history').value
+                history: document.getElementById('history').value,
+                background: document.getElementById('background-select').value,
+                archetype: document.getElementById('archetype-select').value,
+                ac: document.getElementById('ac-val').textContent,
+                initiative: document.getElementById('initiative-val').textContent
             };
             localStorage.setItem('characterData', JSON.stringify(characterData));
             console.log("Dados do personagem salvos no localStorage.");
@@ -284,6 +362,7 @@
                 document.getElementById('race-select').value = data.race || '';
                 document.getElementById('class-select').value = data.class || '';
                 document.getElementById('hp').value = data.hp || '';
+                document.getElementById('gold').value = data.gold || 0;
                 if (data.attributes) {
                     document.getElementById('str').value = data.attributes.str || 0;
                     document.getElementById('dex').value = data.attributes.dex || 0;
@@ -294,6 +373,8 @@
                 }
                 document.getElementById('skills').value = data.skills || '';
                 document.getElementById('history').value = data.history || '';
+                document.getElementById('background-select').value = data.background || '';
+                document.getElementById('archetype-select').value = data.archetype || '';
                 updateCharacterSheet();
                 console.log("Dados do personagem carregados do localStorage.");
             } else {
@@ -351,6 +432,109 @@
             }
         }
         
+        // Carrega antecedentes de um arquivo de dados simulado
+        async function loadBackgrounds() {
+            const backgroundSelect = document.getElementById('background-select');
+            try {
+                const response = await fetch('data.md');
+                const text = await response.text();
+                const json = JSON.parse(text);
+                const backgrounds = json.backgrounds;
+
+                backgroundSelect.innerHTML = '<option value="">Selecione um Antecedente...</option>';
+                
+                backgrounds.forEach(bg => {
+                    const option = document.createElement('option');
+                    option.value = bg.name;
+                    option.textContent = bg.name;
+                    backgroundSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar antecedentes:", error);
+            }
+        }
+        
+        // Carrega arquétipos de um arquivo de dados simulado
+        async function loadArchetypes() {
+            const archetypeSelect = document.getElementById('archetype-select');
+            try {
+                const response = await fetch('data.md');
+                const text = await response.text();
+                const json = JSON.parse(text);
+                const archetypes = json.archetypes;
+
+                archetypeSelect.innerHTML = '<option value="">Selecione um Arquétipo...</option>';
+                
+                archetypes.forEach(arc => {
+                    const option = document.createElement('option');
+                    option.value = arc.name;
+                    option.textContent = arc.name;
+                    archetypeSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar arquétipos:", error);
+            }
+        }
+        
+        // Automação para popular o inventário e o ouro com base nas seleções
+        async function autoPopulateStartingGear() {
+            const classSelected = document.getElementById('class-select').value;
+            const backgroundSelected = document.getElementById('background-select').value;
+            const archetypeSelected = document.getElementById('archetype-select').value;
+            
+            // Limpa o inventário e o ouro antes de popular
+            saveInventory([]);
+            document.getElementById('gold').value = 0;
+
+            try {
+                const response = await fetch('data.md');
+                const text = await response.text();
+                const data = JSON.parse(text);
+                const startingGearData = data.starting_gear;
+
+                let newInventory = [];
+                let totalGold = 0;
+
+                // Adiciona itens e ouro da classe
+                if (classSelected && startingGearData.classes[classSelected]) {
+                    const gear = startingGearData.classes[classSelected];
+                    gear.items.forEach(item => newInventory.push(item));
+                    totalGold += gear.gold;
+                }
+
+                // Adiciona itens e ouro do antecedente
+                if (backgroundSelected && startingGearData.backgrounds[backgroundSelected]) {
+                    const gear = startingGearData.backgrounds[backgroundSelected];
+                    gear.items.forEach(item => newInventory.push(item));
+                    totalGold += gear.gold;
+                }
+
+                // Adiciona itens e ouro do arquétipo
+                if (archetypeSelected && startingGearData.archetypes[archetypeSelected]) {
+                    const gear = startingGearData.archetypes[archetypeSelected];
+                    gear.items.forEach(item => newInventory.push(item));
+                    totalGold += gear.gold;
+                }
+                
+                // Agrupa itens duplicados no inventário
+                const aggregatedInventory = newInventory.reduce((acc, item) => {
+                    const existingItem = acc.find(i => i.name === item.name);
+                    if (existingItem) {
+                        existingItem.quantity += item.quantity;
+                    } else {
+                        acc.push({ ...item });
+                    }
+                    return acc;
+                }, []);
+                
+                document.getElementById('gold').value = totalGold;
+                saveInventory(aggregatedInventory);
+                saveCharacterData();
+            } catch (error) {
+                console.error("Erro ao carregar equipamentos iniciais:", error);
+            }
+        }
+
         function populateInventory(items) {
             const list = document.getElementById('inventory-list');
             list.innerHTML = '';
@@ -453,7 +637,7 @@
         }
 
         function setupListeners() {
-            const inputs = document.querySelectorAll('#ficha-tab input, #ficha-tab select, #ficha-tab textarea');
+            const inputs = document.querySelectorAll('input, select, textarea');
             inputs.forEach(input => {
                 input.addEventListener('change', updateCharacterSheet);
             });
@@ -462,6 +646,11 @@
             statsInputs.forEach(input => {
                 input.addEventListener('input', updateCharacterSheet);
             });
+            
+            // Adiciona listener para a automação de itens iniciais
+            document.getElementById('class-select').addEventListener('change', autoPopulateStartingGear);
+            document.getElementById('background-select').addEventListener('change', autoPopulateStartingGear);
+            document.getElementById('archetype-select').addEventListener('change', autoPopulateStartingGear);
         }
 
         window.onload = function() {
@@ -469,6 +658,8 @@
             loadCharacterData();
             loadPredefinedItems();
             loadPredefinedSpells();
+            loadBackgrounds();
+            loadArchetypes();
             populateInventory(getInventory());
             populateSpells(getSpells());
             

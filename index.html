@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha de Personagem D&D</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Cinzel', serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .container-char {
+            max-width: 1024px;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        input, select, textarea {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            background-color: #f9fafb;
+            color: #1f2937;
+            width: 100%;
+        }
+        .stats-box {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+        .stat-input-group {
+            display: flex;
+            align-items: center;
+        }
+        .stat-input-group label {
+            margin-right: 0.5rem;
+        }
+        .stat-modifier {
+            font-weight: bold;
+            color: #4b5563;
+        }
+        .history-entry, .inventory-item, .spell-entry {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0.75rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .inventory-item:last-child, .history-entry:last-child, .spell-entry:last-child {
+            border-bottom: none;
+        }
+        .tab-button {
+            background-color: #d1d5db;
+            color: #4b5563;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            transition: background-color 0.2s;
+        }
+        .tab-button.active {
+            background-color: #4b5563;
+            color: #ffffff;
+        }
+        .button-add, .button-remove, .button-toggle {
+            background-color: #10b981;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .button-remove {
+            background-color: #ef4444;
+        }
+        .spell-button-remove {
+            background-color: #ef4444;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .hidden {
+            display: none;
+        }
+        .footer-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        @media (max-width: 640px) {
+            .stats-box {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay flex-col space-y-4">
+        <div class="text-xl font-bold">Carregando Ficha...</div>
+        <div>
+            <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Main Character Sheet Container -->
+    <div id="main-container" class="container-char bg-gray-100 p-4 rounded-xl shadow-lg w-full relative">
+        <div class="space-y-6">
+            <!-- Header Section -->
+            <div class="card p-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+                <div class="flex-1 space-y-2">
+                    <input type="text" id="name" placeholder="Nome do Personagem" class="text-xl font-bold text-center sm:text-left">
+                    <div class="flex items-center space-x-2">
+                        <select id="race-select" class="w-1/2">
+                            <option value="">Raça</option>
+                            <option value="humano">Humano</option>
+                            <option value="anao">Anão</option>
+                            <option value="elfo">Elfo</option>
+                            <option value="halfling">Halfling</option>
+                            <option value="tiefling">Tiefling</option>
+                        </select>
+                        <select id="class-select" class="w-1/2">
+                            <option value="">Classe</option>
+                            <option value="guerreiro">Guerreiro</option>
+                            <option value="mago">Mago</option>
+                            <option value="clerigo">Clérigo</option>
+                            <option value="ladino">Ladino</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex-1 text-center sm:text-right space-y-2">
+                    <div class="text-sm">Pontos de Vida</div>
+                    <input type="number" id="hp" class="text-4xl text-center font-bold w-full sm:w-2/3 mx-auto">
+                </div>
+            </div>
+
+            <!-- Tabs Section -->
+            <div class="flex justify-center space-x-4 mb-6">
+                <button class="tab-button active" onclick="showTab('ficha')">Ficha</button>
+                <button class="tab-button" onclick="showTab('inventory')">Inventário</button>
+                <button class="tab-button" onclick="showTab('spells')">Feitiços</button>
+            </div>
+
+            <!-- Ficha Tab -->
+            <div id="ficha-tab" class="tab-content active space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Attributes Section -->
+                    <div class="card p-6 space-y-4">
+                        <h2 class="text-2xl font-bold text-center">Atributos</h2>
+                        <div class="stats-box">
+                            <div class="stat-input-group"><label for="str">FOR</label><input type="number" id="str" class="stat-input w-16"></div>
+                            <div class="text-center"><span class="stat-modifier" id="str-mod">0</span></div>
+                            <div class="stat-input-group"><label for="dex">DES</label><input type="number" id="dex" class="stat-input w-16"></div>
+                            <div class="text-center"><span class="stat-modifier" id="dex-mod">0</span></div>
+                            <div class="stat-input-group"><label for="con">CON</label><input type="number" id="con" class="stat-input w-16"></div>
+                            <div class="text-center"><span class="stat-modifier" id="con-mod">0</span></div>
+                            <div class="stat-input-group"><label for="int">INT</label><input type="number" id="int" class="stat-input w-16"></div>
+                            <div class="text-center"><span class="stat-modifier" id="int-mod">0</span></div>
+                            <div class="stat-input-group"><label for="wis">SAB</label><input type="number" id="wis" class="stat-input w-16"></div>
+                            <div class="text-center"><span class="stat-modifier" id="wis-mod">0</span></div>
+                            <div class="stat-input-group"><label for="cha">CAR</label><input type="number" id="cha" class="stat-input w-16"></div>
+                            <div class="text-center"><span class="stat-modifier" id="cha-mod">0</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Skills and Proficiencies -->
+                    <div class="card p-6 space-y-4">
+                        <h2 class="text-2xl font-bold text-center">Habilidades e Perícias</h2>
+                        <textarea id="skills" rows="6" placeholder="Acrobacia, Persuasão, etc..." class="w-full"></textarea>
+                    </div>
+                </div>
+
+                <!-- Bio & History Section -->
+                <div class="card p-6 space-y-4">
+                    <h2 class="text-2xl font-bold text-center">História do Personagem</h2>
+                    <textarea id="history" rows="10" placeholder="A história do seu personagem..."></textarea>
+                </div>
+            </div>
+
+            <!-- Inventory Tab -->
+            <div id="inventory-tab" class="tab-content">
+                <div class="card p-6 space-y-4">
+                    <h2 class="text-2xl font-bold text-center">Inventário</h2>
+                    <div class="flex space-x-2">
+                        <select id="predefined-item-select" class="flex-grow"></select>
+                        <button class="button-add" onclick="addItem()">Adicionar</button>
+                    </div>
+                    <ul id="inventory-list" class="space-y-2"></ul>
+                </div>
+            </div>
+
+            <!-- Spells Tab -->
+            <div id="spells-tab" class="tab-content">
+                <div class="card p-6 space-y-4">
+                    <h2 class="text-2xl font-bold text-center">Feitiços</h2>
+                    <div class="flex space-x-2">
+                        <select id="predefined-spell-select" class="flex-grow"></select>
+                        <button class="button-add" onclick="addSpell()">Adicionar</button>
+                    </div>
+                    <ul id="spells-list" class="space-y-2"></ul>
+                </div>
+            </div>
+
+            <div class="footer-buttons">
+                <button class="button-add" onclick="saveCharacterData()">Salvar Ficha</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Funções para manipular os dados da ficha usando localStorage
+        function getModifier(score) {
+            return Math.floor((score - 10) / 2);
+        }
+
+        function updateCharacterSheet() {
+            const attributes = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+            attributes.forEach(attr => {
+                const score = parseInt(document.getElementById(attr).value) || 0;
+                document.getElementById(`${attr}-mod`).textContent = getModifier(score);
+            });
+            saveCharacterData();
+        }
+
+        // Salva os dados do personagem no localStorage
+        function saveCharacterData() {
+            const characterData = {
+                name: document.getElementById('name').value,
+                race: document.getElementById('race-select').value,
+                class: document.getElementById('class-select').value,
+                hp: document.getElementById('hp').value,
+                attributes: {
+                    str: parseInt(document.getElementById('str').value) || 0,
+                    dex: parseInt(document.getElementById('dex').value) || 0,
+                    con: parseInt(document.getElementById('con').value) || 0,
+                    int: parseInt(document.getElementById('int').value) || 0,
+                    wis: parseInt(document.getElementById('wis').value) || 0,
+                    cha: parseInt(document.getElementById('cha').value) || 0,
+                },
+                skills: document.getElementById('skills').value,
+                history: document.getElementById('history').value
+            };
+            localStorage.setItem('characterData', JSON.stringify(characterData));
+            console.log("Dados do personagem salvos no localStorage.");
+        }
+
+        // Carrega os dados do personagem do localStorage
+        function loadCharacterData() {
+            const savedData = localStorage.getItem('characterData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                document.getElementById('name').value = data.name || '';
+                document.getElementById('race-select').value = data.race || '';
+                document.getElementById('class-select').value = data.class || '';
+                document.getElementById('hp').value = data.hp || '';
+                if (data.attributes) {
+                    document.getElementById('str').value = data.attributes.str || 0;
+                    document.getElementById('dex').value = data.attributes.dex || 0;
+                    document.getElementById('con').value = data.attributes.con || 0;
+                    document.getElementById('int').value = data.attributes.int || 0;
+                    document.getElementById('wis').value = data.attributes.wis || 0;
+                    document.getElementById('cha').value = data.attributes.cha || 0;
+                }
+                document.getElementById('skills').value = data.skills || '';
+                document.getElementById('history').value = data.history || '';
+                updateCharacterSheet();
+                console.log("Dados do personagem carregados do localStorage.");
+            } else {
+                console.log("Nenhum dado de personagem encontrado no localStorage.");
+            }
+        }
+
+        // Carrega itens de um arquivo de dados simulado
+        async function loadPredefinedItems() {
+            const predefinedItemSelect = document.getElementById('predefined-item-select');
+            
+            try {
+                const response = await fetch('data.md');
+                const text = await response.text();
+                const json = JSON.parse(text);
+                const mockItems = json.items;
+
+                // Limpa o seletor
+                predefinedItemSelect.innerHTML = '<option value="">Selecione um item...</option>';
+                
+                // Popula o seletor com os dados simulados
+                mockItems.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify(item);
+                    option.textContent = item.name;
+                    predefinedItemSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar itens:", error);
+            }
+        }
+
+        // Carrega feitiços de um arquivo de dados simulado
+        async function loadPredefinedSpells() {
+            const predefinedSpellSelect = document.getElementById('predefined-spell-select');
+
+            try {
+                const response = await fetch('data.md');
+                const text = await response.text();
+                const json = JSON.parse(text);
+                const mockSpells = json.spells;
+
+                // Limpa o seletor
+                predefinedSpellSelect.innerHTML = '<option value="">Selecione um feitiço...</option>';
+
+                // Popula o seletor com os dados simulados
+                mockSpells.forEach(spell => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify(spell);
+                    option.textContent = spell.name;
+                    predefinedSpellSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar feitiços:", error);
+            }
+        }
+        
+        function populateInventory(items) {
+            const list = document.getElementById('inventory-list');
+            list.innerHTML = '';
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'inventory-item';
+                li.innerHTML = `
+                    <div class="flex-1">${item.name} (${item.quantity})</div>
+                    <button class="button-remove" data-id="${item.name}">Remover</button>
+                `;
+                li.querySelector('.button-remove').onclick = () => removeItem(item.name);
+                list.appendChild(li);
+            });
+        }
+        
+        function populateSpells(spells) {
+            const list = document.getElementById('spells-list');
+            list.innerHTML = '';
+            spells.forEach(spell => {
+                const li = document.createElement('li');
+                li.className = 'spell-entry';
+                li.innerHTML = `
+                    <div class="flex-1">
+                        <span class="font-bold">${spell.name}</span> (Nível ${spell.level})
+                        <p class="text-sm italic text-gray-600">${spell.description}</p>
+                    </div>
+                    <button class="spell-button-remove" data-id="${spell.name}">Remover</button>
+                `;
+                li.querySelector('.spell-button-remove').onclick = () => removeSpell(spell.name);
+                list.appendChild(li);
+            });
+        }
+        
+        function getInventory() {
+            const inventory = localStorage.getItem('inventory');
+            return inventory ? JSON.parse(inventory) : [];
+        }
+
+        function saveInventory(inventory) {
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+            populateInventory(inventory);
+        }
+
+        function getSpells() {
+            const spells = localStorage.getItem('spells');
+            return spells ? JSON.parse(spells) : [];
+        }
+        
+        function saveSpells(spells) {
+            localStorage.setItem('spells', JSON.stringify(spells));
+            populateSpells(spells);
+        }
+
+        function addItem() {
+            const select = document.getElementById('predefined-item-select');
+            if (select.value) {
+                const selectedItem = JSON.parse(select.value);
+                const inventory = getInventory();
+                const existingItem = inventory.find(item => item.name === selectedItem.name);
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                } else {
+                    inventory.push({ ...selectedItem, quantity: 1 });
+                }
+                saveInventory(inventory);
+            }
+        }
+        
+        function removeItem(name) {
+            let inventory = getInventory();
+            inventory = inventory.filter(item => item.name !== name);
+            saveInventory(inventory);
+        }
+
+        function addSpell() {
+            const select = document.getElementById('predefined-spell-select');
+            if (select.value) {
+                const selectedSpell = JSON.parse(select.value);
+                const spells = getSpells();
+                const existingSpell = spells.find(spell => spell.name === selectedSpell.name);
+                if (!existingSpell) {
+                    spells.push(selectedSpell);
+                    saveSpells(spells);
+                }
+            }
+        }
+
+        function removeSpell(name) {
+            let spells = getSpells();
+            spells = spells.filter(spell => spell.name !== name);
+            saveSpells(spells);
+        }
+
+        // Funções para manipular a interface
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-button[onclick="showTab('${tabName}')"]`).classList.add('active');
+        }
+
+        function setupListeners() {
+            const inputs = document.querySelectorAll('#ficha-tab input, #ficha-tab select, #ficha-tab textarea');
+            inputs.forEach(input => {
+                input.addEventListener('change', updateCharacterSheet);
+            });
+            document.getElementById('hp').addEventListener('input', saveCharacterData);
+            const statsInputs = document.querySelectorAll('.stat-input');
+            statsInputs.forEach(input => {
+                input.addEventListener('input', updateCharacterSheet);
+            });
+        }
+
+        window.onload = function() {
+            setupListeners();
+            loadCharacterData();
+            loadPredefinedItems();
+            loadPredefinedSpells();
+            populateInventory(getInventory());
+            populateSpells(getSpells());
+            
+            // Esconder o overlay de carregamento
+            document.getElementById('loading-overlay').classList.add('hidden');
+        };
+    </script>
+</body>
+</html>
